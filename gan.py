@@ -12,23 +12,39 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         
         self.model = nn.Sequential(
-            nn.Linear(latent_dim, 128),
-            nn.LeakyReLU(0.2),
-            nn.BatchNorm1d(128),
-            
-            nn.Linear(128, 256),
-            nn.LeakyReLU(0.2),
-            nn.BatchNorm1d(256),
-
-            nn.Linear(256, 512),
+            nn.Linear(latent_dim, 512),
             nn.LeakyReLU(0.2),
             nn.BatchNorm1d(512),
             
-            nn.Linear(512, 256),
+            nn.Linear(512,256),
             nn.LeakyReLU(0.2),
             nn.BatchNorm1d(256),
+
+            nn.Linear(256,128),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm1d(128),
             
-            nn.Linear(256, output_dim),
+            nn.Linear(128,64),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm1d(64),
+
+            nn.Linear(64, 512),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm1d(512),
+            
+            nn.Linear(512,256),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm1d(256),
+
+            nn.Linear(256,128),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm1d(128),
+            
+            nn.Linear(128,64),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm1d(64),
+            
+            nn.Linear(64, output_dim),
             nn.Tanh()
         )
         
@@ -42,6 +58,30 @@ class Discriminator(nn.Module):
         
         self.model = nn.Sequential(
             nn.Linear(input_dim, 512),
+            nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
+            
+            nn.Linear(512, 256),
+            nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
+            
+            nn.Linear(256, 128),
+            nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
+
+            nn.Linear(128, 512),
+            nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
+            
+            nn.Linear(512, 256),
+            nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
+            
+            nn.Linear(256, 128),
+            nn.LeakyReLU(0.2),
+            nn.Dropout(0.3),
+
+            nn.Linear(128, 512),
             nn.LeakyReLU(0.2),
             nn.Dropout(0.3),
             
@@ -98,7 +138,6 @@ class NetworkTrafficGAN:
         
         # Training loop
         for epoch in range(epochs):
-            print(f"epcoh : {epoch}")
             d_losses, g_losses = [], []
             
             for real_data in self.dataloader:
@@ -148,19 +187,3 @@ class NetworkTrafficGAN:
         generated_df = pd.DataFrame(generated_data, columns=self.selected_features)
         return generated_df
 
-# Usage example
-def main():
-    # Initialize and train the GAN
-    gan = NetworkTrafficGAN('./data/ALLFLOWMETER_HIKARI2021.csv')
-    gan.train(epochs=1000)
-    
-    # Generate synthetic samples
-    synthetic_data = gan.generate_samples(n_samples=1000)
-    
-    # Save synthetic data
-    synthetic_data.to_csv('synthetic_network_traffic.csv', index=False)
-    
-    print("Synthetic data generation complete!")
-
-if __name__ == "__main__":
-    main()
