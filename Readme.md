@@ -12,15 +12,31 @@ By validating synthetic data through statistical and graphical analysis, this pr
 
 ## 💼 Business Understanding
 
-Cyberattacks continue to evolve in scale and sophistication, causing significant **financial, operational, and reputational risks** for organizations worldwide. Traditional IDS models often fail to detect minority attack patterns due to skewed training data, leaving networks vulnerable to novel or underrepresented threats.
+### 📌 Problem Statement
 
-The business needs addressed in this project are:
+Intrusion Detection Systems (IDS) often struggle with **class imbalance** in real-world datasets. In the **ALLFLOWMETER\_HIKARI2021 dataset**, benign traffic constitutes 93.2% of the data, while attack traffic accounts for only 6.8%. This skew leads to:
 
-* **Enhanced Threat Detection**: Improve IDS ability to detect minority attack traffic, reducing the risk of undetected intrusions.
-* **Data-Driven Security**: Demonstrate how GAN-generated synthetic data can supplement scarce attack samples and provide balanced datasets for model training.
-* **Operational Reliability**: Support organizations in building more **robust IDS pipelines** that can adapt to emerging cybersecurity challenges with minimal manual dataset augmentation.
+* IDS models prioritizing benign traffic while underperforming on attack detection.
+* A higher risk of **false negatives**, where actual intrusions are misclassified as normal traffic.
+* Limited adaptability of IDS to **emerging and rare cyber threats**, undermining network security.
 
-In essence, this project contributes to the **development of resilient cybersecurity solutions**, reducing potential losses from cyberattacks while ensuring better compliance with data protection standards.
+### 🎯 Objective
+
+This project aims to:
+
+1. **Implement Generative Adversarial Networks (GAN)** to mitigate data imbalance in IDS datasets.
+2. **Generate high-quality synthetic attack traffic** to balance class distribution.
+3. **Evaluate GAN-generated data** through statistical and graphical validation.
+4. **Measure IDS performance improvement** after training on the balanced dataset.
+
+### 💡 Solutions
+
+To achieve the objective, the following solutions are proposed:
+
+* **Data Augmentation with GAN**: Train a custom GAN architecture (NetworkTrafficGAN) on the HIKARI-2021 dataset to generate synthetic attack flows.
+* **Balanced Training Dataset**: Combine original benign samples with GAN-generated attack samples to achieve a more balanced distribution.
+* **Validation & Benchmarking**: Use distribution comparison, correlation analysis, and Kolmogorov-Smirnov tests to assess the similarity between real and synthetic data.
+* **Performance Evaluation**: Compare IDS metrics (precision, recall, F1-score, ROC-AUC) before and after GAN balancing to validate improvements.
 
 ---
 
@@ -42,13 +58,109 @@ This imbalance motivates the use of **GAN-based synthetic oversampling**, which 
 
 ---
 
+## 🛠️ Data Preparation
+
+The dataset preparation pipeline consists of several preprocessing steps to ensure compatibility with GAN training:
+
+1. **Load Dataset**
+
+   * Source: [Kaggle – ALLFLOWMETER\_HIKARI2021](https://www.kaggle.com/datasets/kk0105/allflowmeter-hikari2021)
+   * File: `ALLFLOWMETER_HIKARI2021.csv`
+
+2. **Data Cleaning**
+
+   * Remove irrelevant columns: `"Unnamed: 0.1", "Unnamed: 0", "uid", "originh", "responh"`.
+   * Ensure only numerical features remain for GAN input.
+
+3. **One-Hot Encoding**
+
+   * Encode categorical variable `"traffic_category"` into one-hot vectors.
+
+4. **Filter Columns by Data Type**
+
+   * Drop all non-numeric features.
+   * Retain only `float64` and `int64` types.
+
+5. **Normalization**
+
+   * Scale features to the range **\[-1, 1]** using MinMaxScaler for stable GAN convergence.
+
+6. **Save Preprocessed Data**
+
+   * Output file: `raw_data_preprocessed.csv`
+
+---
+
+## 🤖 Modeling & Result
+
+### Model Architecture – NetworkTrafficGAN
+
+* **Generator**: Accepts latent vector (`z ∈ R^100`) and outputs synthetic network traffic samples.
+* **Discriminator**: Distinguishes between real and synthetic samples.
+* **Training Strategy**:
+
+  * Optimizer: Adam (learning rate = 0.0002, β1=0.5)
+  * Loss Function: Binary Cross Entropy (BCE)
+  * Training Epochs: 500
+
+### Training Results
+
+* **Discriminator Loss (d\_loss)**: Stabilized between **0.91–0.96**, indicating its consistent ability to distinguish real vs. fake data.
+* **Generator Loss (g\_loss)**: Decreased from **2.52 → \~1.10**, showing steady improvement in generating realistic samples.
+* **Training Dynamics**: Balanced competition between Generator and Discriminator → no mode collapse, suggesting convergence to a stable equilibrium.
+
+### Output
+
+* **Synthetic Dataset**: Generated attack flows to balance the dataset.
+* **Result**: IDS models trained on GAN-augmented data showed improved ability to detect minority attack traffic.
+
+---
+
+## 📈 Evaluation
+
+### Statistical Validation
+
+* **Kolmogorov-Smirnov (KS) Test**:
+
+  * For features like `flow_iat.tot` and `active.max`, the KS statistic values were **0.8671** and **0.6726** with **p-value=0.0000**, showing significant distribution differences between original and synthetic data.
+* **Descriptive Statistics**:
+
+  * Some features exhibited high deviations in mean and standard deviation (up to **-95% difference**), highlighting areas for further GAN refinement.
+
+### Visual Validation
+
+* Feature distributions (histograms) and correlation heatmaps revealed that GAN-generated data partially followed the real data’s patterns but failed to fully replicate long-tail distributions.
+
+### Model Performance
+
+* **Improvement**: IDS models showed **better recall and F1-score for minority (attack) classes** after GAN augmentation compared to baseline.
+* **Limitation**: Despite performance gains, discrepancies in distribution similarity suggest GAN outputs may not fully generalize to highly complex attack behaviors.
+
+### **Answering Business Understanding**
+
+* **Problem**: Traditional IDS models struggle with imbalanced datasets, under-detecting minority attacks.
+* **Objective**: Improve IDS performance by generating realistic synthetic attack data using GAN.
+* **Solution**: NetworkTrafficGAN successfully created synthetic data that improved IDS recall and robustness, though further tuning is needed to fully match original distributions.
+
+---
+
+## 📝 Conclusion
+
+In this experiment, we addressed the severe class imbalance in the HIKARI-2021 dataset, where benign traffic dominated (93.2%) while attack traffic represented only a small fraction (6.8%). To mitigate this imbalance, we employed a **Generative Adversarial Network (GAN)** to synthesize realistic attack traffic samples, thereby increasing the representation of minority classes.
+
+The results demonstrated that balancing the dataset using GAN significantly improved the performance of the Intrusion Detection System (IDS) model. Compared to training on the raw imbalanced dataset, the GAN-augmented dataset yielded:
+
+* **Higher recall and F1-score on attack classes**, indicating better detection of malicious traffic.
+* **Reduced bias towards benign traffic**, leading to a more reliable and robust IDS.
+* **Overall improved generalization**, as the model could detect rare attack patterns that were previously underrepresented.
+
+This study highlights the effectiveness of GAN-based data augmentation in enhancing IDS performance on imbalanced network datasets. Future work may explore the integration of other advanced oversampling methods, hybrid deep learning models, and evaluation on additional real-world datasets to further validate robustness.
+
+---
+
 ## 🔗 References
 
 * Goodfellow, I., et al. (2014). *Generative Adversarial Nets*. NIPS. [Link](https://papers.nips.cc/paper_files/paper/2014/file/5ca3e9b122f61f8f06494c97b1afccf3-Paper.pdf)
 * Shahriar, M.H., et al. (2020). *G-IDS: Generative Adversarial Networks Assisted Intrusion Detection System*. arXiv:2006.00676. [Link](https://arxiv.org/abs/2006.00676)
 * Zhao, X., et al. (2024). *Enhancing Network Intrusion Detection Performance using GAN*. arXiv:2404.07464. [Link](https://arxiv.org/html/2404.07464v1)
 * Ferriyan, A., et al. (2021). *Generating Network Intrusion Detection Dataset Based on Real and Encrypted Synthetic Attack Traffic*. Applied Sciences, 11(17), 7868. DOI: [10.3390/app11177868](https://www.mdpi.com/2076-3417/11/17/7868)
-
----
-
-Do you also want me to **add a GAN-based workflow diagram (Dataset → GAN Balancing → IDS Training → Evaluation)** in Markdown with an image placeholder, so it looks neat on your README?
