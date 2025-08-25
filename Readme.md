@@ -164,3 +164,8 @@ This study highlights the effectiveness of GAN-based data augmentation in enhanc
 * Shahriar, M.H., et al. (2020). *G-IDS: Generative Adversarial Networks Assisted Intrusion Detection System*. arXiv:2006.00676. [Link](https://arxiv.org/abs/2006.00676)
 * Zhao, X., et al. (2024). *Enhancing Network Intrusion Detection Performance using GAN*. arXiv:2404.07464. [Link](https://arxiv.org/html/2404.07464v1)
 * Ferriyan, A., et al. (2021). *Generating Network Intrusion Detection Dataset Based on Real and Encrypted Synthetic Attack Traffic*. Applied Sciences, 11(17), 7868. DOI: [10.3390/app11177868](https://www.mdpi.com/2076-3417/11/17/7868)
+---
+## Development Team
+* I Putu Paramaananda Tanaya
+* Muhammad Aldy Naufal Fadhilah 
+* Jonathan Young
